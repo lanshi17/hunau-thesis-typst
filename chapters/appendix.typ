@@ -1,4 +1,4 @@
-#import "../hunau.typ": bitable, three-line-table
+#import "../hunau.typ": bitable, three-line-table, table-en
 
 #heading(level: 1, numbering: none, outlined: true)[附录1 补充材料]
 
@@ -16,6 +16,6 @@
     [S03], [种子], [32×],
   ),
   [补充样本信息],
-  [Supplementary sample information],
-  appendix: 1,
 ) <tab:appendix-sample>
+
+#table-en([Supplementary sample information])

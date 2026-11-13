@@ -1,5 +1,7 @@
 # Hunau Thesis · Typst
 
+[![build](https://github.com/lanshi17/hunau-thesis-typst/actions/workflows/ci.yml/badge.svg)](https://github.com/lanshi17/hunau-thesis-typst/actions/workflows/ci.yml)
+
 湖南农业大学研究生学位论文的 Typst 版本，参考并吸收了 [hunau-thesis](https://github.com/ethanchen0431/hunau-thesis)（LaTeX 版）的版式与功能：
 
 - 博士 / 学术硕士 / 专业硕士切换
@@ -9,7 +11,7 @@
 - 单双页页眉、章内图表公式编号
 - 中英文双语图表题、三线表、卧排表
 - GB/T 7714 参考文献
-- 附录编号、致谢、作者简历
+- 附录编号、致谢、作者简历、成果清单、参与项目
 
 与 LaTeX 版相比，Typst 版不需要 TeX Live，编译速度快，源码更接近 Markdown。
 
@@ -29,7 +31,11 @@ typst compile main.typ
 typst watch main.typ      # 保存即重新编译
 ```
 
-首次编译会自动下载 `@preview/touying` 之外的依赖（本模板只依赖 Typst 内置能力，无额外包）。
+本地检查（编译 + 页数 + 中文字体）：
+
+```bash
+bash scripts/check.sh
+```
 
 ## 文件结构
 
@@ -38,7 +44,7 @@ hunau-thesis-typst/
 ├── main.typ               # 主文件：论文信息 + 章节顺序
 ├── hunau.typ              # 模板：页面、封面、页眉页脚、图表与摘要
 ├── lib/
-│   └── units.typ          # 数值千分位、数值 + 单位、范围、不确定度
+│   └── units.typ          # 数值千分位、单位、范围、科学计数法、百分比
 ├── chapters/
 │   ├── chapter1.typ       # 绪论示例
 │   ├── chapter2.typ       # 图表公式规范示例
@@ -46,6 +52,10 @@ hunau-thesis-typst/
 ├── images/
 │   ├── hunau_badge.png    # 封面校徽
 │   └── 2/                 # 示例图片
+├── scripts/
+│   └── check.sh           # 本地编译 + 页数 + 字体检查
+├── .github/workflows/
+│   └── ci.yml             # GitHub Actions：编译、页数、字体检查
 ├── references.bib         # 参考文献数据库
 ├── main.pdf               # 编译产物
 └── README.md
@@ -100,7 +110,7 @@ blind: true
 - 封面/扉页的作者、导师、学号、答辩信息替换为 `***`
 - 不生成“致谢”页
 
-作者简历中的个人姓名需要自行替换。
+作者简历中的个人姓名、正文中的人名需要自行替换。
 
 ## 摘要与关键词
 
@@ -149,9 +159,9 @@ keywords-en: ("Rapeseed", "Computer Vision", "Deep Learning", "Phenotyping"),
 #bifigure(
   image("../images/2/2-1.png", width: 13.5cm),
   [油菜种子结构示意图],
-  [Schematic diagram of rapeseed seed structure],
-  chapter: 2,
 ) <fig:seed>
+
+#figure-en([Schematic diagram of rapeseed seed structure])
 ```
 
 正文引用：
@@ -162,9 +172,10 @@ keywords-en: ("Rapeseed", "Computer Vision", "Deep Learning", "Phenotyping"),
 
 说明：
 
-- `chapter:` 必须写当前章号，用于生成“图 2-1”和“Figure 2-1”。
-- 图题中文在下方，英文紧随其后（当前实现英文行在中文图题上方，见“已知差异”）。
-- 图号按章自动重置，目录/插图清单中的编号也会正确。
+- `bifigure` 只负责中文图题和图表编号。
+- `figure-en` 紧跟在后面，生成英文题注，显示在中文图题下方。
+- 插图清单只收录中文图题，不会把英文行带进去。
+- 图号按章自动生成（图 2-1），不需要手动传章号。
 
 ## 表
 
@@ -178,14 +189,15 @@ keywords-en: ("Rapeseed", "Computer Vision", "Deep Learning", "Phenotyping"),
     [中双11号], [172.1], [2380.1],
   ),
   [不同油菜品种的农艺性状统计],
-  [Statistics of agronomic traits of different rapeseed varieties],
-  chapter: 2,
 ) <tab:traits>
+
+#table-en([Statistics of agronomic traits of different rapeseed varieties])
 ```
 
 - `three-line-table` 只负责上下粗线；表头后的细线用 `table.hline(stroke: 0.75pt)`。
 - 表内文字默认 10.5pt（五号）。
 - 表格引用：`见表 @tab:traits`。
+- 附表清单同样只收录中文表题。
 
 ### 卧排表
 
@@ -194,9 +206,9 @@ keywords-en: ("Rapeseed", "Computer Vision", "Deep Learning", "Phenotyping"),
   #bitable(
     table(columns: (auto, auto, auto, auto), ...),
     [多性状全基因组关联分析显著位点汇总],
-    [Summary of significant loci ...],
-    chapter: 2,
   ) <tab:landscape>
+
+  #table-en([Summary of significant loci ...])
 ]
 ```
 
@@ -215,10 +227,14 @@ $ L = lambda_("coord") sum_(i=0)^(S^2) (x_i - hat(x)_i)^2 $ <eq:loss>
 ## 数值与单位
 
 ```typst
-#qty(300000, "株/ha")        // 300,000 株/ha
-#qty-pm(165.4, 5.2, "cm")    // 165.4 ± 5.2 cm
-#qty-range(15, 25, "°C")     // 15–25 °C
-#num(123456)                 // 123,456
+#qty(300000, "株/ha")          // 300,000 株/ha
+#qty-pm(165.4, 5.2, "cm")      // 165.4 ± 5.2 cm
+#qty-range(15, 25, "°C")       // 15–25 °C
+#qty-sci(123456, "bp")         // 1.23 × 10^5 bp
+#qty-list((10, 20, 30), "株")  // 10、20、30 株
+#percent(0.425)                // 42.5%
+#num(123456)                   // 123,456
+#sci(123456)                   // 1.23 × 10^5
 ```
 
 需要更复杂的 siunitx 功能时，可在 `lib/units.typ` 中扩展。
@@ -254,9 +270,9 @@ Typst 内置 CSL 样式，使用 `gb-7714-2015-numeric` 即可得到国标顺序
 #bitable(
   ...,
   [补充样本信息],
-  [Supplementary sample information],
-  appendix: 1,
 ) <tab:appendix>
+
+#table-en([Supplementary sample information])
 ```
 
 编号会变成“表 附录1-1”“Table 附录1-1”。
@@ -272,16 +288,53 @@ thanks: [
 resume: [
   #heading(level: 2, numbering: none, outlined: false)[作者简历]
   ……
+
   #heading(level: 2, numbering: none, outlined: false)[科研成果]
-  ……
+  #publication-list((
+    ("2025", [论文标题], [期刊名称], [第一作者]),
+    ("2024", [会议论文标题], [会议名称], [第二作者]),
+  ))
+
+  #heading(level: 2, numbering: none, outlined: false)[参与项目]
+  #project-list((
+    ("项目名称", [项目来源], "2024–2025", [主要参与人]),
+  ))
 ],
 ```
 
 盲审模式下 `thanks` 不输出。
 
+## 清单样式
+
+插图清单和附表清单由 `list-of` 生成，可配置字号与缩进：
+
+```typst
+#list-of([插图清单], figure.where(kind: image), size: 10.5pt, indent: 1.5em)
+#list-of([附表清单], figure.where(kind: table), size: 10.5pt, indent: 1.5em)
+```
+
+需要自定义时，修改 `hunau.typ` 中 `list-of` 的 `show outline.entry` 规则。
+
+## 前置部分页码
+
+模板复刻了 LaTeX 版的 openright 布局：
+
+- 封面：无页码
+- 扉页：I
+- 独创性声明：III
+- 中文摘要：V
+- 英文摘要：VII
+- 目录：IX
+- 插图清单：XI
+- 附表清单：XIII
+- 符号说明：XV
+- 正文：1
+
+中间自动插入空白偶数页，空白页不显示页码。
+
 ## 字体
 
-模板使用：
+模板默认使用：
 
 ```typst
 #let font-serif = ("Times New Roman", "SimSun")
@@ -289,41 +342,53 @@ resume: [
 #let font-kai   = ("Times New Roman", "Xingkai SC")
 ```
 
-- macOS：SimSun / SimHei / Xingkai SC 通常可用。
-- Windows：如果缺少 `Xingkai SC`，可改为 `"STXingkai"` 或 `"KaiTi"`。
-- Linux：建议安装 `Source Han Sans SC` / `Source Han Serif SC`，并相应替换。
+- macOS：SimSun / SimHei 通常可用；没有 `Xingkai SC` 时可用 `STXingkai` 或 `KaiTi`。
+- Windows：SimSun / SimHei 通常可用；`Xingkai SC` 可改为 `STXingkai`。
+- Linux / CI：安装 `fonts-noto-cjk`，把字体替换为 `Noto Serif CJK SC` / `Noto Sans CJK SC`。
 
-字体缺失时 Typst 会回退，版面可能变宽。
+CI 会自动做这组替换，本地 macOS / Windows 不受影响。
+
+## CI
+
+`.github/workflows/ci.yml` 在每次 push / PR 时：
+
+1. 安装 Typst 0.15.1 与 Noto CJK 字体
+2. 替换为 CI 可用字体
+3. `typst compile main.typ`
+4. 检查页数（至少 20 页）
+5. 上传 `main.pdf` 作为 artifact
+
+本地等价检查：
+
+```bash
+bash scripts/check.sh
+```
 
 ## 已知差异（相对 LaTeX 版）
 
-1. **图表编号需要显式 `chapter:`**
-   Typst 的 `figure` 计数器在目录重排时会重新求值，为保证插图/附表清单编号正确，`bifigure` / `bitable` 要求传入当前章号。章节顺序变化时记得同步修改。
-
-2. **英文图题位置**
-   当前实现中英文图题位于中文图题上方；LaTeX 版是中文在上、英文在下。若需要严格一致，可修改 `hunau.typ` 里的 `bifigure` / `bitable`，把英文行移入 `caption`（代价是插图清单会同时显示英文行）。
-
-3. **前置部分页码**
-   封面、扉页、授权页不编号；摘要从 `i` 开始。LaTeX 版扉页为 `I`、授权页为 `III`，Typst 版没有刻意插入空白页。
-
-4. **卧排表页眉**
+1. **卧排表页眉**
    横向页面不显示页眉，只保留页码；LaTeX 版对单双页表头朝向有更细的处理。
 
-5. **SI 单位**
-   `lib/units.typ` 是轻量实现，覆盖常用数值、范围、不确定度；未实现 siunitx 的全部单位与排版规则。
+2. **SI 单位**
+   `lib/units.typ` 覆盖常用数值、范围、不确定度、科学计数法和百分比；未实现 siunitx 的全部单位与排版规则。
 
-6. **盲审范围**
+3. **盲审范围**
    自动隐藏封面/扉页个人信息和致谢；作者简历、正文中的人名需要自行替换。
+
+4. **图表编号上限**
+   章号编码为 `章号 × 1000 + 序号`，单章图表建议不超过 999 个。
+
+5. **前置部分空白页**
+   已按 LaTeX 版插入空白偶数页；如果增删前置章节，需要同步调整 `blank-page()` 的位置。
 
 ## 后续可以做的事
 
-- 图表编号改为按章自动捕获，去掉 `chapter:` 参数
-- 英文图题移回中文图题下方，同时保持清单只显示中文
-- 前置部分严格复刻 LaTeX 版的空白页与罗马页码
-- 更完整的 SI 单位与科学计数法
-- 自定义插图/附表清单样式
-- 增加“成果清单”“参与项目”等常见页面组件
-- CI：编译 + 页数 + 字体缺失检查
+- 卧排表页眉与页码方向
+- 更完整的 SI 单位与科学计数法（已支持基础科学计数法）
+- 自定义插图/附表清单样式（已支持字号与缩进）
+- 盲审模式覆盖作者简历与正文人名
+- 更多页面组件（成果清单、参与项目已提供）
+- CI 增加链接检查与字体缺失的严格模式
 
 ## 致谢
 

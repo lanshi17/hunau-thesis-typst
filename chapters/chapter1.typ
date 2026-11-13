@@ -1,4 +1,4 @@
-#import "../hunau.typ": bitable
+#import "../hunau.typ": bitable, table-en
 
 = 绪论
 
@@ -45,9 +45,9 @@
     table.hline(stroke: 1.2pt),
   ),
   [研究技术路线],
-  [Research technical route],
-  chapter: 1,
 ) <tab:route>
+
+#table-en([Research technical route])
 
 == 本章小结
 

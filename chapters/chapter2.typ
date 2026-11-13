@@ -1,5 +1,5 @@
-#import "../hunau.typ": bifigure, bitable, three-line-table, landscape-page
-#import "../lib/units.typ": num, qty, qty-range, qty-pm
+#import "../hunau.typ": bifigure, bitable, three-line-table, landscape-page, figure-en, table-en
+#import "../lib/units.typ": num, qty, qty-range, qty-pm, qty-sci, qty-list, percent
 
 = 图表与公式的格式规范
 
@@ -13,6 +13,9 @@
 - 带不确定度：株高测量结果为 #qty-pm(165.4, 5.2, "cm")。
 - 数值范围：温度变化范围为 #qty-range(15, 25, "°C")。
 - 大数分组：本研究共采集了 #num(123456) 个数据点。
+- 科学计数法：测序深度约为 #qty-sci(123456, "bp")。
+- 一组数值：样本量为 #qty-list((10, 20, 30), "株")。
+- 百分比：合格率为 #percent(0.425)。
 
 == 插图的格式要求与样例
 
@@ -23,9 +26,9 @@
 #bifigure(
   image("../images/2/2-1.png", width: 13.5cm),
   [油菜种子结构示意图],
-  [Schematic diagram of rapeseed seed structure],
-  chapter: 2,
 ) <fig:std_example>
+
+#figure-en([Schematic diagram of rapeseed seed structure])
 
 === 结构示意图
 
@@ -34,9 +37,9 @@
 #bifigure(
   image("../images/2/2-2.png", width: 11.0cm),
   [油菜花器与角果结构示意图],
-  [Schematic diagram of rapeseed flower and silique structure],
-  chapter: 2,
 ) <fig:scale_example>
+
+#figure-en([Schematic diagram of rapeseed flower and silique structure])
 
 == 表格的格式要求与样例
 
@@ -52,9 +55,9 @@
     [华油杂62], [#num(168.9) ± #num(6.1)], [#num(8.8) ± #num(1.5)], [#num(338.7) ± #num(31.2)], [#num(3.95) ± #num(0.18)],
   ),
   [不同油菜品种的农艺性状统计],
-  [Statistics of agronomic traits of different rapeseed varieties],
-  chapter: 2,
 ) <tab:phenotype>
+
+#table-en([Statistics of agronomic traits of different rapeseed varieties])
 
 == 卧排表
 
@@ -76,9 +79,9 @@
       table.hline(stroke: 1.5pt),
     ),
     [多性状全基因组关联分析显著位点汇总],
-    [Summary of significant loci from multi-trait genome-wide association studies],
-    chapter: 2,
   ) <tab:landscape>
+
+  #table-en([Summary of significant loci from multi-trait genome-wide association studies])
 ]
 
 == 公式的格式要求与样例

@@ -23,6 +23,8 @@
 #let font-sans = ("Times New Roman", "SimHei")
 #let font-kai = ("Times New Roman", "Xingkai SC")
 
+#let bluegray = rgb("#61688A")
+
 // ---------------------------------------------------------------------------
 // 学位类型
 // ---------------------------------------------------------------------------
@@ -90,60 +92,54 @@
 #let chapter-title = state("chapter-title", "")
 #let appendix-mode = state("appendix-mode", none)
 
-// 图表编号：chapter / appendix 在调用时静态传入，避免目录重排时状态错位。
-#let fig-label-number(chapter, appendix, n) = if appendix != none {
-  numbering("附录1-1", appendix, n)
-} else {
-  numbering("1-1", chapter, n)
+// 图表编号：章号编码进 figure 计数器（章号 × 1000 + 序号），
+// 这样目录重排时不需要读取可变状态，编号也不会错位。
+#let fig-label-number(n) = {
+  let ch = calc.quo(n, 1000)
+  let seq = calc.rem(n, 1000)
+  if ch >= 1000 {
+    numbering("附录1-1", ch - 1000, seq)
+  } else {
+    numbering("1-1", ch, seq)
+  }
 }
 
 // ---------------------------------------------------------------------------
 // 图表与三线表
 // ---------------------------------------------------------------------------
 
-/// 双语插图。标签写法：#bifigure(...) <fig:name>
-/// chapter: 所属章号；appendix: 附录编号（普通章节不传）
-#let bifigure(body, cn, en, chapter: 1, appendix: none) = {
-  let content = grid(
-    columns: (1fr,),
-    row-gutter: 0.12cm,
-    body,
-    context {
-      let n = counter(figure.where(kind: image)).get().first()
-      text(size: 10.5pt, font: "Times New Roman")[
-        Figure #fig-label-number(chapter, appendix, n) #en
-      ]
-    },
-  )
-  figure(
-    content,
-    caption: cn,
-    supplement: [图],
-    numbering: n => fig-label-number(chapter, appendix, n),
-    kind: image,
-  )
+/// 插图（中文图题）。标签写法：#bifigure(...) <fig:name>
+#let bifigure(body, cn) = figure(
+  body,
+  caption: cn,
+  supplement: [图],
+  numbering: fig-label-number,
+  kind: image,
+)
+
+/// 插图英文题注，紧跟在 #bifigure 之后使用。
+#let figure-en(body) = context {
+  let n = counter(figure.where(kind: image)).get().first()
+  align(center, text(size: 10.5pt, font: "Times New Roman")[
+    Figure #fig-label-number(n) #body
+  ])
 }
 
-/// 双语表格。标签写法：#bitable(...) <tab:name>
-#let bitable(body, cn, en, chapter: 1, appendix: none) = {
-  let content = grid(
-    columns: (1fr,),
-    row-gutter: 0.35cm,
-    body,
-    context {
-      let n = counter(figure.where(kind: table)).get().first()
-      text(size: 10.5pt, font: "Times New Roman")[
-        Table #fig-label-number(chapter, appendix, n) #en
-      ]
-    },
-  )
-  figure(
-    content,
-    caption: cn,
-    supplement: [表],
-    numbering: n => fig-label-number(chapter, appendix, n),
-    kind: table,
-  )
+/// 表格（中文表题）。标签写法：#bitable(...) <tab:name>
+#let bitable(body, cn) = figure(
+  body,
+  caption: cn,
+  supplement: [表],
+  numbering: fig-label-number,
+  kind: table,
+)
+
+/// 表格英文题注，紧跟在 #bitable 之后使用。
+#let table-en(body) = context {
+  let n = counter(figure.where(kind: table)).get().first()
+  align(center, text(size: 10.5pt, font: "Times New Roman")[
+    Table #fig-label-number(n) #body
+  ])
 }
 
 /// 三线表骨架；表头后请自行插入 table.hline(stroke: 0.75pt)
@@ -292,6 +288,9 @@
   #align(center, text(font: font-song, size: 15pt, cn-date(submitdate)))
 ]
 
+// 空白页：用于复刻 LaTeX 版的 openright 前置部分。
+#let blank-page() = page(header: none, footer: none, numbering: none)[#v(1fr)]
+
 #let title-page(
   degree,
   blind,
@@ -312,7 +311,7 @@
   chair,
   reviewer,
   submitdate,
-) = page(header: none, footer: none, numbering: none)[
+) = page(header: none, footer: front-footer, numbering: "i")[
   #v(0.3cm)
   #grid(
     columns: (1fr, 1fr),
@@ -357,7 +356,7 @@
   #align(center, text(font: font-song, size: 15pt, cn-date(submitdate)))
 ]
 
-#let authorization-page() = page(header: none, footer: none, numbering: none)[
+#let authorization-page() = page(header: none, footer: front-footer, numbering: "i")[
   #v(0.4cm)
   #align(center, text(font: font-sans, size: 16pt, weight: "bold")[独 创 性 声 明])
   #v(0.7cm)
@@ -402,6 +401,63 @@
   outlined: outlined,
 )[#title]
 
+/// 插图/附表清单：可配置字号与缩进。
+#let list-of(title, target, size: 10.5pt, indent: 1.5em) = {
+  front-heading(title)
+  show outline.entry: set text(size: size)
+  outline(title: none, target: target, indent: indent)
+}
+
+/// 成果清单：entries = ((年份, 成果名称, 期刊/会议, 本人排名), ...)
+#let publication-list(entries) = {
+  set par(first-line-indent: 0pt, spacing: 0.5em)
+  if entries.len() == 0 {
+    text(fill: bluegray)[暂无。]
+  } else {
+    for (year, title, venue, ranking) in entries {
+      grid(
+        columns: (1.6cm, 1fr),
+        column-gutter: 0.4cm,
+        align: (left + top, left + top),
+        text(size: 10.5pt, fill: bluegray)[#year],
+        [
+          #text(weight: "bold", size: 10.5pt)[#title]
+          #linebreak()
+          #text(size: 10.5pt)[#venue]#h(0.6em)#text(size: 10.5pt, fill: bluegray)[#ranking]
+        ],
+      )
+      v(0.18cm)
+    }
+  }
+}
+
+/// 参与项目：entries = ((项目名称, 项目来源, 起止时间, 本人角色), ...)
+#let project-list(entries) = {
+  set par(first-line-indent: 0pt, spacing: 0.4em)
+  if entries.len() == 0 {
+    text(fill: bluegray)[暂无。]
+  } else {
+    for (name, source, period, role) in entries {
+      grid(
+        columns: (1fr, auto),
+        column-gutter: 0.4cm,
+        align: (left + top, right + top),
+        [
+          #text(weight: "bold")[#name]
+          #linebreak()
+          #text(size: 10.5pt, fill: bluegray)[#source]
+        ],
+        [
+          #text(size: 10.5pt, fill: bluegray)[#period]
+          #linebreak()
+          #text(size: 10.5pt)[#role]
+        ],
+      )
+      v(0.18cm)
+    }
+  }
+}
+
 #let abstract-cn-page(body, keywords, fund) = {
   front-heading([摘　要])
   body
@@ -442,8 +498,8 @@
 
 #let appendix(n: 1) = {
   appendix-mode.update(n)
-  counter(figure.where(kind: image)).update(0)
-  counter(figure.where(kind: table)).update(0)
+  counter(figure.where(kind: image)).update((1000 + n) * 1000)
+  counter(figure.where(kind: table)).update((1000 + n) * 1000)
 }
 
 // ---------------------------------------------------------------------------
@@ -512,10 +568,11 @@
 
   show heading.where(level: 1): it => {
     if it.numbering != none {
-      chapter-no.update(counter(heading).get().first())
+      let ch = counter(heading).get().first()
+      chapter-no.update(ch)
       chapter-title.update(it.body)
-      counter(figure.where(kind: image)).update(0)
-      counter(figure.where(kind: table)).update(0)
+      counter(figure.where(kind: image)).update(ch * 1000)
+      counter(figure.where(kind: table)).update(ch * 1000)
     }
     pagebreak(weak: true)
     v(0.2cm)
@@ -540,7 +597,7 @@
   }
   show figure.caption: it => align(center, it)
 
-  // 封面、扉页、独创性声明（无页码）
+  // 封面（无页码）
   cover-page(
     degree,
     blind,
@@ -554,6 +611,11 @@
     researcharea,
     submitdate,
   )
+  blank-page()
+
+  // 前置部分：罗马页码，每个部分从奇数页开始
+  set page(numbering: "i", header: none, footer: front-footer)
+  counter(page).update(1)
   title-page(
     degree,
     blind,
@@ -575,20 +637,24 @@
     reviewer,
     submitdate,
   )
+  blank-page()
   authorization-page()
-
-  // 前置部分：罗马页码
-  set page(numbering: "i", header: none, footer: front-footer)
-  counter(page).update(1)
+  blank-page()
   abstract-cn-page(abstract-cn, keywords-cn, fund)
+  blank-page()
   abstract-en-page(abstract-en, keywords-en)
+  blank-page()
   front-heading([目　录], outlined: false)
   outline(title: none, depth: 3, indent: 2em)
-  front-heading([插图清单])
-  outline(title: none, target: figure.where(kind: image))
-  front-heading([附表清单])
-  outline(title: none, target: figure.where(kind: table))
-  symbols-page(symbols)
+  blank-page()
+  list-of([插图清单], figure.where(kind: image))
+  blank-page()
+  list-of([附表清单], figure.where(kind: table))
+  if symbols.len() > 0 {
+    blank-page()
+    symbols-page(symbols)
+  }
+  blank-page()
 
   // 主体部分：阿拉伯页码
   counter(heading).update(0)
