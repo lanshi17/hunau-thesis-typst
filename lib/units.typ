@@ -45,8 +45,37 @@
 /// 数值范围：qty-range(15, 25, "°C")
 #let qty-range(a, b, unit) = [#num(a)–#num(b) #h(0.22em)#unit]
 
+/// 纯数值范围：num-range(10, 20) -> 10–20
+#let num-range(a, b) = [#num(a)–#num(b)]
+
 /// 带不确定度：qty-pm(165.4, 5.2, "cm")
 #let qty-pm(value, err, unit) = [#num(value) ± #num(err) #h(0.22em)#unit]
+
+/// 单位倒数：qty-per(300000, "ha") -> 300,000 ha⁻¹
+#let qty-per(value, unit) = [#num(value) #h(0.22em)#unit#super[−1]]
+
+/// 两数乘积 + 单位：qty-product(3, 4, "cm") -> 3 × 4 cm
+#let qty-product(a, b, unit) = [#num(a) × #num(b) #h(0.22em)#unit]
+
+/// 角度：angle(45) -> 45°
+#let angle(value) = [#num(value)°]
+
+/// 常用单位名到符号的映射：unit("cm")
+#let si-units = (
+  cm: "cm",
+  mm: "mm",
+  m: "m",
+  km: "km",
+  kg: "kg",
+  g: "g",
+  ha: "ha",
+  mb: "Mb",
+  bp: "bp",
+  celsius: "°C",
+  percent: "%",
+)
+
+#let unit(name) = si-units.at(name, default: name)
 
 /// 一组带同一单位的数值：qty-list((1, 2, 3), "cm") -> 1、2、3 cm
 #let qty-list(values, unit) = {

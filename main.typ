@@ -11,6 +11,7 @@
 #show: hunau-thesis.with(
   degree: "promaster",
   blind: false,
+  blind-keywords: ("张三", "李四", "王五", "赵教授"),
 
   title: [基于微调模型计算机视觉的油菜表型分析研究],
   entitle: [Research on Rapeseed Phenotyping Based on Computer Vision],
@@ -61,7 +62,7 @@
   resume: [
     #heading(level: 2, numbering: none, outlined: false)[作者简历]
 
-    个人基本情况，大学起的学习经历和工作经历等。
+    张三，2023 年入学，主要研究方向为作物表型分析与深度学习。
 
     #heading(level: 2, numbering: none, outlined: false)[科研成果]
 
@@ -75,6 +76,18 @@
     #project-list((
       ("油菜表型高通量分析平台", [国家自然科学基金], "2024–2025", [主要参与人]),
       ("作物多组学数据整合", [湖南省重点研发计划], "2023–2024", [核心开发]),
+    ))
+
+    #heading(level: 2, numbering: none, outlined: false)[获奖情况]
+
+    #award-list((
+      ("2025", [湖南省优秀研究生], [省级], [第一完成人]),
+    ))
+
+    #heading(level: 2, numbering: none, outlined: false)[学术报告]
+
+    #presentation-list((
+      ("2025", [油菜表型分析的多模态方法], [中国作物学会年会], [口头报告]),
     ))
   ],
 )

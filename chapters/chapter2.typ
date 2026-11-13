@@ -1,5 +1,5 @@
 #import "../hunau.typ": bifigure, bitable, three-line-table, landscape-page, figure-en, table-en
-#import "../lib/units.typ": num, qty, qty-range, qty-pm, qty-sci, qty-list, percent
+#import "../lib/units.typ": num, qty, qty-range, qty-pm, qty-sci, qty-list, percent, qty-per, qty-product, num-range, angle, unit
 
 = 图表与公式的格式规范
 
@@ -16,6 +16,10 @@
 - 科学计数法：测序深度约为 #qty-sci(123456, "bp")。
 - 一组数值：样本量为 #qty-list((10, 20, 30), "株")。
 - 百分比：合格率为 #percent(0.425)。
+- 单位倒数：种植密度为 #qty-per(300000, unit("ha"))。
+- 乘积：样方为 #qty-product(3, 4, unit("cm"))。
+- 数值范围：#num-range(10, 20)。
+- 角度：#angle(45)。
 
 == 插图的格式要求与样例
 

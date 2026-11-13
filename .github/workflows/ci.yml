@@ -21,7 +21,16 @@ jobs:
       - name: Check CJK fonts
         run: |
           typst fonts > /tmp/fonts.txt
-          grep -E 'Noto (Sans|Serif) CJK' /tmp/fonts.txt
+          if ! grep -qE 'Noto (Sans|Serif) CJK' /tmp/fonts.txt; then
+            echo "no Noto CJK font found"
+            exit 1
+          fi
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --accept 200,429 README.md
+          fail: true
 
       - name: Use Noto CJK fonts in CI
         run: |

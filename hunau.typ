@@ -91,12 +91,14 @@
 #let chapter-no = state("chapter-no", 0)
 #let chapter-title = state("chapter-title", "")
 #let appendix-mode = state("appendix-mode", none)
+#let degree-state = state("degree-state", "master")
+#let fig-base = 100000
 
 // 图表编号：章号编码进 figure 计数器（章号 × 1000 + 序号），
 // 这样目录重排时不需要读取可变状态，编号也不会错位。
 #let fig-label-number(n) = {
-  let ch = calc.quo(n, 1000)
-  let seq = calc.rem(n, 1000)
+  let ch = calc.quo(n, fig-base)
+  let seq = calc.rem(n, fig-base)
   if ch >= 1000 {
     numbering("附录1-1", ch - 1000, seq)
   } else {
@@ -152,15 +154,6 @@
   table.hline(stroke: 1.5pt),
 )
 
-/// 卧排表页：横向 A4，无页眉，保留页码。
-#let landscape-page(body) = page(
-  width: 29.7cm,
-  height: 21cm,
-  margin: (top: 2.5cm, bottom: 2.5cm, left: 3.0cm, right: 3.0cm),
-  header: none,
-  footer: context align(center, text(size: 9pt, counter(page).display())),
-)[#body]
-
 // ---------------------------------------------------------------------------
 // 页眉页脚
 // ---------------------------------------------------------------------------
@@ -205,6 +198,26 @@
     line(length: 100%, stroke: 0.5pt)
   }
 }
+
+/// 卧排表页：横向 A4，带页眉与外侧页码。
+#let landscape-page(body) = page(
+  width: 29.7cm,
+  height: 21cm,
+  margin: (top: 2.5cm, bottom: 2.5cm, left: 3.0cm, right: 3.0cm),
+  header: none,
+  footer: outer-footer,
+  footer-descent: 1.75cm,
+)[
+  #context {
+    align(center, text(size: 9pt, font: font-song, degree-header(degree-state.get())))
+    v(0.08cm)
+    line(length: 100%, stroke: 0.5pt)
+    v(0.04cm)
+    line(length: 100%, stroke: 0.5pt)
+  }
+  #v(0.8cm)
+  #body
+]
 
 // ---------------------------------------------------------------------------
 // 封面 / 扉页 / 独创性声明
@@ -290,6 +303,7 @@
 
 // 空白页：用于复刻 LaTeX 版的 openright 前置部分。
 #let blank-page() = page(header: none, footer: none, numbering: none)[#v(1fr)]
+
 
 #let title-page(
   degree,
@@ -431,6 +445,52 @@
   }
 }
 
+/// 获奖情况：entries = ((年份, 奖项名称, 级别, 本人排名), ...)
+#let award-list(entries) = {
+  set par(first-line-indent: 0pt, spacing: 0.5em)
+  if entries.len() == 0 {
+    text(fill: bluegray)[暂无。]
+  } else {
+    for (year, name, level, ranking) in entries {
+      grid(
+        columns: (1.6cm, 1fr),
+        column-gutter: 0.4cm,
+        align: (left + top, left + top),
+        text(size: 10.5pt, fill: bluegray)[#year],
+        [
+          #text(weight: "bold", size: 10.5pt)[#name]
+          #linebreak()
+          #text(size: 10.5pt)[#level]#h(0.6em)#text(size: 10.5pt, fill: bluegray)[#ranking]
+        ],
+      )
+      v(0.18cm)
+    }
+  }
+}
+
+/// 学术报告：entries = ((年份, 报告题目, 会议/单位, 报告类型), ...)
+#let presentation-list(entries) = {
+  set par(first-line-indent: 0pt, spacing: 0.5em)
+  if entries.len() == 0 {
+    text(fill: bluegray)[暂无。]
+  } else {
+    for (year, title, venue, kind) in entries {
+      grid(
+        columns: (1.6cm, 1fr),
+        column-gutter: 0.4cm,
+        align: (left + top, left + top),
+        text(size: 10.5pt, fill: bluegray)[#year],
+        [
+          #text(weight: "bold", size: 10.5pt)[#title]
+          #linebreak()
+          #text(size: 10.5pt)[#venue]#h(0.6em)#text(size: 10.5pt, fill: bluegray)[#kind]
+        ],
+      )
+      v(0.18cm)
+    }
+  }
+}
+
 /// 参与项目：entries = ((项目名称, 项目来源, 起止时间, 本人角色), ...)
 #let project-list(entries) = {
   set par(first-line-indent: 0pt, spacing: 0.4em)
@@ -498,8 +558,8 @@
 
 #let appendix(n: 1) = {
   appendix-mode.update(n)
-  counter(figure.where(kind: image)).update((1000 + n) * 1000)
-  counter(figure.where(kind: table)).update((1000 + n) * 1000)
+  counter(figure.where(kind: image)).update((1000 + n) * fig-base)
+  counter(figure.where(kind: table)).update((1000 + n) * fig-base)
 }
 
 // ---------------------------------------------------------------------------
@@ -509,6 +569,7 @@
 #let hunau-thesis(
   degree: "master",
   blind: false,
+  blind-keywords: (),
   title: [],
   entitle: [],
   author: [],
@@ -537,6 +598,13 @@
   body,
 ) = {
   set document(title: "湖南农业大学研究生学位论文")
+  degree-state.update(degree)
+  let blind-pattern = if blind and blind-keywords.len() > 0 {
+    blind-keywords.join("|")
+  } else {
+    "__HunauNeverMatch__"
+  }
+  show regex(blind-pattern): "***"
   set page(
     paper: "a4",
     margin: (top: 3.0cm, bottom: 2.5cm, left: 2.6cm, right: 2.6cm),
@@ -571,8 +639,8 @@
       let ch = counter(heading).get().first()
       chapter-no.update(ch)
       chapter-title.update(it.body)
-      counter(figure.where(kind: image)).update(ch * 1000)
-      counter(figure.where(kind: table)).update(ch * 1000)
+      counter(figure.where(kind: image)).update(ch * fig-base)
+      counter(figure.where(kind: table)).update(ch * fig-base)
     }
     pagebreak(weak: true)
     v(0.2cm)
