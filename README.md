@@ -1,6 +1,6 @@
 # Hunau Thesis · Typst
 
-湖南农业大学研究生学位论文的 Typst 版本，参考并吸收了 [hunau-thesis](https://github.com/lanshi17/hunau-thesis)（LaTeX 版）的版式与功能：
+湖南农业大学研究生学位论文的 Typst 版本，参考并吸收了 [hunau-thesis](https://github.com/ethanchen0431/hunau-thesis)（LaTeX 版）的版式与功能：
 
 - 博士 / 学术硕士 / 专业硕士切换
 - 盲审模式
@@ -327,4 +327,4 @@ resume: [
 
 ## 致谢
 
-版式与功能参考：[lanshi17/hunau-thesis](https://github.com/lanshi17/hunau-thesis)（LaTeX 版）。
+版式与功能参考：[ethanchen0431/hunau-thesis](https://github.com/ethanchen0431/hunau-thesis)（LaTeX 版）。
