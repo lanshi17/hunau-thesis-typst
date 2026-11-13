@@ -122,7 +122,7 @@
 /// 插图英文题注，紧跟在 #bifigure 之后使用。
 #let figure-en(body) = context {
   let n = counter(figure.where(kind: image)).get().first()
-  align(center, text(size: 10.5pt, font: "Times New Roman")[
+  align(center, text(size: 10.5pt, font: "Times New Roman", cjk-latin-spacing: none)[
     Figure #fig-label-number(n) #body
   ])
 }
@@ -139,7 +139,7 @@
 /// 表格英文题注，紧跟在 #bitable 之后使用。
 #let table-en(body) = context {
   let n = counter(figure.where(kind: table)).get().first()
-  align(center, text(size: 10.5pt, font: "Times New Roman")[
+  align(center, text(size: 10.5pt, font: "Times New Roman", cjk-latin-spacing: none)[
     Table #fig-label-number(n) #body
   ])
 }
@@ -418,7 +418,7 @@
 /// 插图/附表清单：可配置字号与缩进。
 #let list-of(title, target, size: 10.5pt, indent: 1.5em) = {
   front-heading(title)
-  show outline.entry: set text(size: size)
+  show outline.entry: set text(size: size, cjk-latin-spacing: none)
   outline(title: none, target: target, indent: indent)
 }
 
@@ -663,7 +663,7 @@
     text(font: font-sans, size: 12pt, weight: "bold", cjk-latin-spacing: none, it)
     v(0.2cm)
   }
-  show figure.caption: it => align(center, it)
+  show figure.caption: it => align(center, text(cjk-latin-spacing: none, it))
 
   // 封面（无页码）
   cover-page(
